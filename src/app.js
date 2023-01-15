@@ -73,4 +73,15 @@ app.post("/participants", async (req,res)=>{
 })
 
 
+app.get("/participants",async(req,res)=>{
+    try{
+        const RenderParticipants = await participants.find({}).toArray();
+        res.send(RenderParticipants);
+    } catch (err){
+        console.log(err);
+        res.sendStatus(400);
+    }
+})
+
+
 app.listen(port, ()=> console.log(`Server running on port: ${port}`));
