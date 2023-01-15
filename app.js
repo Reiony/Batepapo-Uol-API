@@ -18,14 +18,15 @@ let db;
 
 try{
     await mongoClient.connect();
+    console.log("MongoClient connected sucessfully")
     db = mongoClient.db();
 
 } catch (err){
     console.log(err);
 }
 
-const participantsCollection = db.collection("participants");
-const messagesCollection = db.collection("messages");
+const participants= db.collection("participants");
+const messages = db.collection("messages");
 
 const port = 5000;
 
