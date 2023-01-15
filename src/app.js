@@ -31,10 +31,9 @@ const participantJoi = Joi.object({
 })
 
 const messageJoi = Joi.object({
-    from: Joi.string().min(1).required(),
     to: Joi.string().min(1).required(),
     text: Joi.string().min(1).required(),
-    type: Joi.string().min(1).required(),
+    type: Joi.string().min(1).required().valid("message", "private_message")
 })
 const participants = db.collection("participants");
 const messages = db.collection("messages");
@@ -57,7 +56,8 @@ app.post("/participants", async (req,res)=>{
             const validationError = participantValidation.error.details.map(
                 (err) => err.message
             );
-            return res.status(400).send(validationError)
+            res.status(400).send(validationError);
+            return;
         }
 
         await participants.insertOne({ name, lastStatus: Date.now() });
@@ -78,6 +78,37 @@ app.get("/participants",async(req,res)=>{
         const RenderParticipants = await participants.find({}).toArray();
         res.send(RenderParticipants);
     } catch (err){
+        console.log(err);
+        res.sendStatus(400);
+    }
+})
+
+app.post("/messages", async(req, res)=>{
+    const { to, text, type } = req.body;
+    const { user } = req.headers;
+    try {
+        const userLogged = await participants.findOne({name: user})
+        if (!userLogged){
+            res.status(422).send({message: "User is not logged in"});
+            return;
+        }
+
+        const messageValidation = messageJoi.validate({to, text, type}, {abortEarly: false});
+        if (messageValidation.error){
+            const msgValidationError = messageValidation.error.details.map((err)=>err.message);
+            res.status(400).send(msgValidationError);
+            return;
+        }
+        const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
+        await messages.insertOne({
+            from: user,
+            to,
+            text,
+            type,
+            time: CurrentTimeFormatted
+        });
+        res.status(201).send({message:"OK"});
+    } catch (err) {
         console.log(err);
         res.sendStatus(400);
     }
