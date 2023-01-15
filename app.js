@@ -7,13 +7,25 @@ import { MongoClient } from "mongodb";
 //Start
 
 const app = express();
+dotenv.config();
 app.use(express.json());
 app.use(cors());
-dotenv.config();
 
 
 //MongoDB
+const mongoClient = new MongoClient(process.env.DATABASE_URL);
+let db;
 
+try{
+    await mongoClient.connect();
+    db = mongoClient.db();
+
+} catch (err){
+    console.log(err);
+}
+
+const participantsCollection = db.collection("participants");
+const messagesCollection = db.collection("messages");
 
 const port = 5000;
 
