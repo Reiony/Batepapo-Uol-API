@@ -19,12 +19,23 @@ let db;
 try{
     await mongoClient.connect();
     console.log("MongoClient connected sucessfully")
-    db = mongoClient.db();
 
 } catch (err){
     console.log(err);
 }
+db = mongoClient.db();
 
+const participantJoi = Joi.object({
+    name: Joi.string().min(1).required(),
+    lastStatus: Joi.number().required()
+})
+
+const messageJoi = Joi.object({
+    from: Joi.string().min(1).required(),
+    to: Joi.string().min(1).required(),
+    text: Joi.string().min(1).required(),
+    type: Joi.string().min(1).required(),
+})
 const participants= db.collection("participants");
 const messages = db.collection("messages");
 

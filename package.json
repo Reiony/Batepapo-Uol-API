@@ -1,10 +1,10 @@
 {
   "name": "projeto13-batepapouol-api",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "src/app.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon ./src/app.js"
   },
   "repository": {
     "type": "git",
