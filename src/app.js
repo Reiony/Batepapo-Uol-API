@@ -170,7 +170,7 @@ app.post("/status", async (req, res) => {
   }
 });
 
-/* setInterval(async ()=>{
+setInterval(async ()=>{
     const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
     const CheckUserInactive= Date.now() - 10000;
     try{
@@ -193,7 +193,7 @@ app.post("/status", async (req, res) => {
         console.log(error);
         res.sendStatus(500);
     }
-},15000); */
+},15000);
 
 const port = 5000;
 
