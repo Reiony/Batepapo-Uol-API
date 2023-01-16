@@ -126,17 +126,8 @@ app.post("/messages", async (req, res) => {
 
 app.get("/messages", async (req, res) => {
   const limit = Number(req.query.limit);
-  console.log(limit);
   const { user } = req.headers;
   try {
-    if (limit < 0 || isNaN(limit) || limit === 0) {
-      res.status(422).send("Please type a valid limit");
-      return;
-    }
-    if (limit === undefined) {
-      res.status(200).send(userMessages.reverse());
-      return;
-    }
     const userMessages = await messages
       .find({
         $or: [
@@ -146,8 +137,15 @@ app.get("/messages", async (req, res) => {
         ],
       })
       .toArray();
-
-    res.status(200).send(userMessages.slice(-limit).reverse());
+    if (limit < 0 || limit === 0) {
+      res.status(422).send("Please type a valid limit");
+      return;
+    } else if (limit === undefined) {
+      res.status(200).send(userMessages.reverse());
+      return;
+    } else {
+      res.status(200).send(userMessages.slice(-limit).reverse());
+    }
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
@@ -178,7 +176,7 @@ app.post("/status", async (req, res) => {
     const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
     const CheckUserInactive= Date.now() - 10000;
     try{
-        const FilteredUsers = await participants.find({ lastStatus: {$lt: CheckUserInactive}}).toArray();
+        const FilteredUsers = await participants.find({ lastStatus: {$lte: CheckUserInactive}}).toArray();
 
         if(FilteredUsers.length>0){
             FilteredUsers.map(async(u)=> {
