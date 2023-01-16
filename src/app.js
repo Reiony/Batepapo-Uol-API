@@ -12,144 +12,164 @@ dotenv.config();
 app.use(express.json());
 app.use(cors());
 
-
 //MongoDB
 const mongoClient = new MongoClient(process.env.DATABASE_URL);
 let db;
 
-try{
-    await mongoClient.connect();
-    console.log("MongoClient connected sucessfully")
-
-} catch (err){
-    console.log(err);
+try {
+  await mongoClient.connect();
+  console.log("MongoClient connected sucessfully");
+} catch (err) {
+  console.log(err);
 }
 db = mongoClient.db();
 
 const participantJoi = Joi.object({
-    name: Joi.string().min(1).required()
-})
+  name: Joi.string().min(1).required(),
+});
 
 const messageJoi = Joi.object({
-    to: Joi.string().min(1).required(),
-    text: Joi.string().min(1).required(),
-    type: Joi.string().min(1).required().valid("message", "private_message")
-})
+  to: Joi.string().min(1).required(),
+  text: Joi.string().min(1).required(),
+  type: Joi.string().min(1).required().valid("message", "private_message"),
+});
 const participants = db.collection("participants");
 const messages = db.collection("messages");
 
-//GET and POST 
+//GET and POST
 
-app.post("/participants", async (req,res)=>{
-    const { name } = req.body;
-    try{
-        const CheckParticipant = await participants.findOne({name});
+app.post("/participants", async (req, res) => {
+  const { name } = req.body;
+  try {
+    const CheckParticipant = await participants.findOne({ name });
 
-        if(CheckParticipant){
-            res.status(409).send({message:"User already exists"});
-            return;
-        }
-        const participantValidation = participantJoi.validate({name}, {abortEarly: false});
-
-        if (participantValidation.error){
-            const validationError = participantValidation.error.details.map(
-                (err) => err.message
-            );
-            res.status(422).send(validationError);
-            return;
-        }
-
-        await participants.insertOne({ name, lastStatus: Date.now() });
-
-        const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
-
-        await messages.insertOne({from: name, to: "Todos", text: "entra na sala...", type: "status", time: CurrentTimeFormatted});
-        res.sendStatus(201);
-    } catch (err){
-        console.log(err);
-        res.sendStatus(500);
+    if (CheckParticipant) {
+      res.status(409).send({ message: "User already exists" });
+      return;
     }
-})
+    const participantValidation = participantJoi.validate(
+      { name },
+      { abortEarly: false }
+    );
 
-
-app.get("/participants",async(req,res)=>{
-    try{
-        const RenderParticipants = await participants.find({}).toArray();
-        res.send(RenderParticipants);
-    } catch (err){
-        console.log(err);
-        res.sendStatus(400);
+    if (participantValidation.error) {
+      const validationError = participantValidation.error.details.map(
+        (err) => err.message
+      );
+      res.status(422).send(validationError);
+      return;
     }
-})
 
-app.post("/messages", async(req, res)=>{
-    const { to, text, type } = req.body;
-    const { user } = req.headers;
-    try {
-        const userLogged = await participants.findOne({name: user})
-        if (!userLogged){
-            res.status(422).send({message: "User is not logged in"});
-            return;
-        }
+    await participants.insertOne({ name, lastStatus: Date.now() });
 
-        const messageValidation = messageJoi.validate({to, text, type}, {abortEarly: false});
-        if (messageValidation.error){
-            const msgValidationError = messageValidation.error.details.map((err)=>err.message);
-            res.status(422).send(msgValidationError);
-            return;
-        }
-        const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
-        await messages.insertOne({
-            from: user,
-            to,
-            text,
-            type,
-            time: CurrentTimeFormatted
-        });
-        res.status(201).send({message:"OK"});
-    } catch (err) {
-        console.log(err);
-        res.sendStatus(500);
+    const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
+
+    await messages.insertOne({
+      from: name,
+      to: "Todos",
+      text: "entra na sala...",
+      type: "status",
+      time: CurrentTimeFormatted,
+    });
+    res.sendStatus(201);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.get("/participants", async (req, res) => {
+  try {
+    const RenderParticipants = await participants.find({}).toArray();
+    res.send(RenderParticipants);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(400);
+  }
+});
+
+app.post("/messages", async (req, res) => {
+  const { to, text, type } = req.body;
+  const { user } = req.headers;
+  try {
+    const userLogged = await participants.findOne({ name: user });
+    if (!userLogged) {
+      res.status(422).send({ message: "User is not logged in" });
+      return;
     }
-})
 
-app.get("/messages", async (req, res)=>{
-    const limit  = parseInt(req.query.limit);
-    console.log(limit)
-    const { user } = req.headers;
-    try{
-        if (limit<=0){
-            res.status(422).send("Please type a valid limit first")
-            return
-        }
-        const userMessages = await messages
-        .find({$or:
-            [{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]
-    })
-        .limit(limit)
-        .toArray();
-        res.status(200).send(userMessages)
-    } catch (err) {
-        console.log(err)
-        res.sendStatus(500);
+    const messageValidation = messageJoi.validate(
+      { to, text, type },
+      { abortEarly: false }
+    );
+    if (messageValidation.error) {
+      const msgValidationError = messageValidation.error.details.map(
+        (err) => err.message
+      );
+      res.status(422).send(msgValidationError);
+      return;
     }
-})
+    const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
+    await messages.insertOne({
+      from: user,
+      to,
+      text,
+      type,
+      time: CurrentTimeFormatted,
+    });
+    res.status(201).send({ message: "OK" });
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
 
-app.post("/status", async (req,res)=>{
-    const {user} = req.headers;
-    try{
-        const userConnected= await participants.findOne({ name: user })
-        console.log(userConnected);
-        if(!userConnected){
-            res.status(404).send({message:"User not Found"});
-            return;
-        }
-        await participants.updateOne( {name: user}, {$set: {lastStatus: Date.now()}});
-        res.sendStatus(200);
-    } catch (err) { 
-        console.log(err)
-        res.sendStatus(500);
+app.get("/messages", async (req, res) => {
+  const limit = Number(req.query.limit);
+  console.log(limit);
+  const { user } = req.headers;
+  try {
+    const userMessages = await messages
+      .find({
+        $or: [
+          { from: user },
+          { to: { $in: [user, "Todos"] } },
+          { type: "message" },
+        ],
+      })
+      .limit(limit)
+      .toArray();
+
+    if (limit <= 0) {
+      res.sendStatus(422);
+      return;
     }
+    const InvertedMessages = userMessages.reverse();
+    res.status(200).send(InvertedMessages);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/status", async (req, res) => {
+  const { user } = req.headers;
+  try {
+    const userConnected = await participants.findOne({ name: user });
+    console.log(userConnected);
+    if (!userConnected) {
+      res.status(404).send({ message: "User not Found" });
+      return;
+    }
+    await participants.updateOne(
+      { name: user },
+      { $set: { lastStatus: Date.now() } }
+    );
+    res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
 });
 
 /* setInterval(async ()=>{
@@ -179,4 +199,4 @@ app.post("/status", async (req,res)=>{
 
 const port = 5000;
 
-app.listen(port, ()=> console.log(`Server running on port: ${port}`));
+app.listen(port, () => console.log(`Server running on port: ${port}`));
