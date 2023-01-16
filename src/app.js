@@ -125,22 +125,10 @@ app.post("/messages", async (req, res) => {
 });
 
 app.get("/messages", async (req, res) => {
-  const limit = Number(req.query.limit);
-  let userMessages;
+  const limit  = Number(req.query.limit);
   const { user } = req.headers;
   try {
-    if (limit === NaN) {
-      userMessages = await messages
-        .find({
-          $or: [
-            { from: user },
-            { to: { $in: [user, "Todos"] } },
-            { type: "message" },
-          ],
-        })
-        .toArray();
-    }
-    userMessages = await messages
+    const userMessages = await messages
       .find({
         $or: [
           { from: user },
@@ -148,14 +136,13 @@ app.get("/messages", async (req, res) => {
           { type: "message" },
         ],
       })
-      .limit(limit)
       .toArray();
 
     if (limit <= 0) {
-      res.sendStatus(422);
+      res.status(422).send("Please type a valid limit");
       return;
     }
-    res.status(200).send(userMessages);
+    res.status(200).send(userMessages.slice(-limit).reverse());
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
