@@ -124,6 +124,7 @@ app.get("/messages", async (req, res)=>{
         const userMessages = await messages.find({$or:[{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]}).limit(limit).toArray();
         if (userMessages.length===0){
             res.status(404).send("Can't find any messages");
+            return;
         }
         res.status(200).send(userMessages)
     } catch (err) {
