@@ -140,8 +140,8 @@ app.post("/status", async (req,res)=>{
             res.status(404).send({message:"User not Found"});
             return;
         }
-        await participants.updateOne({name: user},{ $set: {lastStatus: Date.now()}});
-        res.sendStatus(200)
+        await participants.updateOne( {name: user}, {$set: {lastStatus: Date.now()}});
+        res.sendStatus(200);
     } catch (err) { 
         console.log(err)
         res.sendStatus(500);
@@ -162,14 +162,11 @@ setInterval(async ()=>{
                     text: "sai da sala...",
                     type: "status",
                     time: CurrentTimeFormatted
-                }
-                await messages.insertOne(ExitMessage);
-                await participants.deleteOne({name: u.name})
-                
+                }      
             })
+            await messages.insertOne(ExitMessage);
+            await participants.deleteOne({name: u.name})  
         }
-
-
     } catch (error){
         console.log(error);
         res.sendStatus(500);
