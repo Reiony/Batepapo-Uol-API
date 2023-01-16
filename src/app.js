@@ -117,16 +117,15 @@ app.get("/messages", async (req, res)=>{
     const limit = Number(req.query.limit);
     const { user } = req.headers;
     try{
-        if (limit<=0){
-            res.status(422).send("Please type a valid Limit")
-            return;
+        if (limit<=0 || isNaN(limit)){
+            res.status(422).send("Please type a valid limit first")
+            return
         }
-        const userMessages = await messages.find({$or:[{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]}).limit(limit).toArray();
-        if (userMessages.length===0){
-            res.status(404).send("Can't find any messages");
-            return;
-        }
-        res.status(200).send(userMessages)
+        const userMessages = await messages
+        .find({$or:[{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]})
+        .limit(limit)
+        .toArray();
+        res.status(200).send(userMessages.reverse())
     } catch (err) {
         console.log(err)
         res.sendStatus(500);
@@ -163,10 +162,10 @@ setInterval(async ()=>{
                     text: "sai da sala...",
                     type: "status",
                     time: CurrentTimeFormatted
-                }      
+                }   
+                await participants.deleteOne({name: u.name})   
+                await messages.insertOne(ExitMessage);  
             })
-            await messages.insertOne(ExitMessage);
-            await participants.deleteOne({name: u.name})  
         }
     } catch (error){
         console.log(error);
