@@ -126,6 +126,8 @@ app.post("/messages", async (req, res) => {
 
 app.get("/messages", async (req, res) => {
   const limit = Number(req.query.limit);
+  console.log(limit);
+  console.log(req.query.limit);
   const { user } = req.headers;
   try {
     const userMessages = await messages
@@ -137,11 +139,11 @@ app.get("/messages", async (req, res) => {
         ],
       })
       .toArray();
-    if (limit < 0 || limit === 0 || typeof limit !== "number") {
+    if (limit <= 0 || (isNaN(limit) && req.query.limit !== undefined)) {
       res.status(422).send("Please type a valid limit");
-      return; 
+      return;
     }
-      res.status(200).send(userMessages.slice(-limit).reverse());
+    res.status(200).send(userMessages.slice(-limit).reverse());
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
@@ -168,30 +170,32 @@ app.post("/status", async (req, res) => {
   }
 });
 
-setInterval(async ()=>{
-    const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
-    const CheckUserInactive= Date.now() - 10000;
-    try{
-        const FilteredUsers = await participants.find({ lastStatus: {$lte: CheckUserInactive}}).toArray();
+setInterval(async () => {
+  const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
+  const CheckUserInactive = Date.now() - 10000;
+  try {
+    const FilteredUsers = await participants
+      .find({ lastStatus: { $lte: CheckUserInactive } })
+      .toArray();
 
-        if(FilteredUsers.length>0){
-            FilteredUsers.map(async(u)=> {
-                const ExitMessage = {
-                    from: u.name,
-                    to: "Todos",
-                    text: "sai da sala...",
-                    type: "status",
-                    time: CurrentTimeFormatted,
-                }   
-                await participants.deleteOne({name: u.name})   
-                await messages.insertOne(ExitMessage);  
-            })
-        }
-    } catch (error){
-        console.log(error);
-        res.sendStatus(500);
+    if (FilteredUsers.length > 0) {
+      FilteredUsers.map(async (u) => {
+        const ExitMessage = {
+          from: u.name,
+          to: "Todos",
+          text: "sai da sala...",
+          type: "status",
+          time: CurrentTimeFormatted,
+        };
+        await participants.deleteOne({ name: u.name });
+        await messages.insertOne(ExitMessage);
+      });
     }
-},15000);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+}, 15000);
 
 const port = 5000;
 
