@@ -67,7 +67,7 @@ app.post("/participants", async (req,res)=>{
         res.sendStatus(201);
     } catch (err){
         console.log(err);
-
+        res.sendStatus(500);
     }
 })
 
@@ -127,6 +127,24 @@ app.get("/messages", async (req, res)=>{
         res.sendStatus(500);
     }
 })
+
+app.post("/status", async (req,res)=>{
+    const user = req.headers;
+    try{
+        const userConnected= await participants.findOne({ name: user })
+        if(!userConnected){
+            res.status(404).send({message:"User not Found"});
+            return;
+        }
+        await participants.updateOne({name: user},{ $set: {lastStatus: Date.now()}});
+        res.sendStatus(200)
+    } catch (err) { 
+        console.log(err)
+        res.sendStatus(500);
+    }
+});
+
+
 
 const port = 5000;
 
