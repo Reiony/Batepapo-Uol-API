@@ -121,7 +121,7 @@ app.get("/messages", async (req, res)=>{
         if (userMessages.length===0){
             res.status(404).send("Can't find any messages");
         }
-        res.send(userMessages)
+        res.status(200).send(userMessages)
     } catch (err) {
         console.log(err)
         res.sendStatus(500);
