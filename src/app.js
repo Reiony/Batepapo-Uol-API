@@ -126,6 +126,7 @@ app.post("/messages", async (req, res) => {
 
 app.get("/messages", async (req, res) => {
   const limit  = Number(req.query.limit);
+  console.log(limit);
   const { user } = req.headers;
   try {
     const userMessages = await messages
@@ -138,7 +139,7 @@ app.get("/messages", async (req, res) => {
       })
       .toArray();
 
-    if (limit <= 0) {
+    if (limit <= 0 || isNaN(limit)) {
       res.status(422).send("Please type a valid limit");
       return;
     }
@@ -169,7 +170,7 @@ app.post("/status", async (req, res) => {
   }
 });
 
-/* setInterval(async ()=>{
+setInterval(async ()=>{
     const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
     const CheckUserInactive= Date.now() - 10000;
     try{
@@ -192,7 +193,7 @@ app.post("/status", async (req, res) => {
         console.log(error);
         res.sendStatus(500);
     }
-},15000); */
+},15000);
 
 const port = 5000;
 
