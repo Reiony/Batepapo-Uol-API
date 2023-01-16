@@ -118,12 +118,14 @@ app.get("/messages", async (req, res)=>{
     console.log(limit)
     const { user } = req.headers;
     try{
-        /* if (limit<=0 || isNaN(limit)){
+        if (limit<=0){
             res.status(422).send("Please type a valid limit first")
             return
-        } */
+        }
         const userMessages = await messages
-        .find({$or:[{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]})
+        .find({$or:
+            [{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]
+    })
         .limit(limit)
         .toArray();
         res.status(200).send(userMessages)
