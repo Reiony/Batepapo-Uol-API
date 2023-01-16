@@ -136,15 +136,12 @@ app.get("/messages", async (req, res) => {
           { type: "message" },
         ],
       })
-      .limit(limit)
       .toArray();
-    /* if (limit < 0 || limit === 0) {
+    if (limit < 0 || limit === 0 || typeof limit !== "number") {
       res.status(422).send("Please type a valid limit");
-      return;
-    } else if (limit === undefined) {
-      res.status(200).send(userMessages.reverse());
-      return; */
-      res.status(200).send([...userMessages].reverse());
+      return; 
+    }
+      res.status(200).send(userMessages.slice(-limit).reverse());
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
