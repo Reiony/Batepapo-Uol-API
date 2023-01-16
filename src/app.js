@@ -139,7 +139,7 @@ app.get("/messages", async (req, res) => {
       })
       .toArray();
 
-    if (limit <= 0 || isNaN(limit)) {
+    if (limit < 0 || isNaN(limit)|| limit===0) {
       res.status(422).send("Please type a valid limit");
       return;
     }
