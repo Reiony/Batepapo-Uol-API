@@ -138,7 +138,11 @@ app.get("/messages", async (req, res) => {
         ],
       })
       .toArray();
-
+    
+    if (limit===undefined){
+        res.status(200).send(userMessages.reverse())
+        return;
+    }
     if (limit < 0 || isNaN(limit)|| limit===0) {
       res.status(422).send("Please type a valid limit");
       return;
@@ -170,7 +174,7 @@ app.post("/status", async (req, res) => {
   }
 });
 
-setInterval(async ()=>{
+/* setInterval(async ()=>{
     const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
     const CheckUserInactive= Date.now() - 10000;
     try{
@@ -183,7 +187,7 @@ setInterval(async ()=>{
                     to: "Todos",
                     text: "sai da sala...",
                     type: "status",
-                    time: CurrentTimeFormatted
+                    time: CurrentTimeFormatted,
                 }   
                 await participants.deleteOne({name: u.name})   
                 await messages.insertOne(ExitMessage);  
@@ -193,7 +197,7 @@ setInterval(async ()=>{
         console.log(error);
         res.sendStatus(500);
     }
-},15000);
+},15000); */
 
 const port = 5000;
 
