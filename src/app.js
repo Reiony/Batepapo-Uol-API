@@ -117,6 +117,10 @@ app.get("/messages", async (req, res)=>{
     const limit = Number(req.query.limit);
     const { user } = req.headers;
     try{
+        if (limit<=0){
+            res.status(422).send("Please type a valid Limit")
+            return;
+        }
         const userMessages = await messages.find({$or:[{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]}).limit(limit).toArray();
         if (userMessages.length===0){
             res.status(404).send("Can't find any messages");
