@@ -144,7 +144,33 @@ app.post("/status", async (req,res)=>{
     }
 });
 
+setInterval(async ()=>{
+    const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
+    const CheckUserInactive= Date.now() - 10000;
+    try{
+        const FilteredUsers = await participants.find({ lastStatus: {$lt: CheckUserInactive}}).toArray();
 
+        if(FilteredUsers.length>0){
+            FilteredUsers.map(async(u)=> {
+                const ExitMessage = {
+                    from: u.name,
+                    to: "Todos",
+                    text: "sai da sala...",
+                    type: "status",
+                    time: CurrentTimeFormatted
+                }
+                await messages.insertOne(ExitMessage);
+                await participants.deleteOne({name: u.name})
+                
+            })
+        }
+
+
+    } catch (error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+},15000);
 
 const port = 5000;
 
