@@ -114,18 +114,19 @@ app.post("/messages", async(req, res)=>{
 })
 
 app.get("/messages", async (req, res)=>{
-    const limit = Number(req.query.limit);
+    const limit  = parseInt(req.query.limit);
+    console.log(limit)
     const { user } = req.headers;
     try{
-        if (limit<=0 || isNaN(limit)){
+        /* if (limit<=0 || isNaN(limit)){
             res.status(422).send("Please type a valid limit first")
             return
-        }
+        } */
         const userMessages = await messages
         .find({$or:[{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]})
         .limit(limit)
         .toArray();
-        res.status(200).send(userMessages.reverse())
+        res.status(200).send(userMessages)
     } catch (err) {
         console.log(err)
         res.sendStatus(500);
@@ -133,9 +134,10 @@ app.get("/messages", async (req, res)=>{
 })
 
 app.post("/status", async (req,res)=>{
-    const user = req.headers;
+    const {user} = req.headers;
     try{
         const userConnected= await participants.findOne({ name: user })
+        console.log(userConnected);
         if(!userConnected){
             res.status(404).send({message:"User not Found"});
             return;
@@ -148,7 +150,7 @@ app.post("/status", async (req,res)=>{
     }
 });
 
-setInterval(async ()=>{
+/* setInterval(async ()=>{
     const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
     const CheckUserInactive= Date.now() - 10000;
     try{
@@ -171,7 +173,7 @@ setInterval(async ()=>{
         console.log(error);
         res.sendStatus(500);
     }
-},15000);
+},15000); */
 
 const port = 5000;
 
