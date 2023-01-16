@@ -55,7 +55,7 @@ app.post("/participants", async (req,res)=>{
             const validationError = participantValidation.error.details.map(
                 (err) => err.message
             );
-            res.status(400).send(validationError);
+            res.status(422).send(validationError);
             return;
         }
 
@@ -95,7 +95,7 @@ app.post("/messages", async(req, res)=>{
         const messageValidation = messageJoi.validate({to, text, type}, {abortEarly: false});
         if (messageValidation.error){
             const msgValidationError = messageValidation.error.details.map((err)=>err.message);
-            res.status(400).send(msgValidationError);
+            res.status(422).send(msgValidationError);
             return;
         }
         const CurrentTimeFormatted = dayjs().format("HH:mm:ss");
