@@ -38,8 +38,7 @@ const messageJoi = Joi.object({
 const participants = db.collection("participants");
 const messages = db.collection("messages");
 
-const port = 5000;
-
+//GET and POST 
 
 app.post("/participants", async (req,res)=>{
     const { name } = req.body;
@@ -110,9 +109,25 @@ app.post("/messages", async(req, res)=>{
         res.status(201).send({message:"OK"});
     } catch (err) {
         console.log(err);
-        res.sendStatus(400);
+        res.sendStatus(500);
     }
 })
 
+app.get("/messages", async (req, res)=>{
+    const limit = Number(req.query.limit);
+    const { user } = req.headers;
+    try{
+        const userMessages = await messages.find({$or:[{from: user}, {to: {$in: [user,"Todos"]}},{type:"message"}]}).limit(limit).toArray();
+        if (userMessages.length===0){
+            res.status(404).send("Can't find any messages");
+        }
+        res.send(userMessages)
+    } catch (err) {
+        console.log(err)
+        res.sendStatus(500);
+    }
+})
+
+const port = 5000;
 
 app.listen(port, ()=> console.log(`Server running on port: ${port}`));
