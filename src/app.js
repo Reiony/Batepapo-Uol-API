@@ -126,10 +126,21 @@ app.post("/messages", async (req, res) => {
 
 app.get("/messages", async (req, res) => {
   const limit = Number(req.query.limit);
-  console.log(limit);
+  let userMessages;
   const { user } = req.headers;
   try {
-    const userMessages = await messages
+    if (limit === NaN) {
+      userMessages = await messages
+        .find({
+          $or: [
+            { from: user },
+            { to: { $in: [user, "Todos"] } },
+            { type: "message" },
+          ],
+        })
+        .toArray();
+    }
+    userMessages = await messages
       .find({
         $or: [
           { from: user },
@@ -144,8 +155,7 @@ app.get("/messages", async (req, res) => {
       res.sendStatus(422);
       return;
     }
-    const InvertedMessages = userMessages.reverse();
-    res.status(200).send(InvertedMessages);
+    res.status(200).send(userMessages);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
@@ -167,7 +177,7 @@ app.post("/status", async (req, res) => {
     );
     res.sendStatus(200);
   } catch (err) {
-    console.log(err);
+    console.log(err.details);
     res.sendStatus(500);
   }
 });
